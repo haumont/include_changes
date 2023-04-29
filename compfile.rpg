@@ -1,0 +1,54 @@
+     H DFTACTGRP(*NO) ACTGRP('MYGRP')
+     H BNDDIR('QC2LE')
+
+      /DEFINE LIBRARY_NAME 'MYLIB'
+      /DEFINE MEMBER_LIST 'FILELIST'
+
+     DCL-F fileList  WorkStn  INDDS(*IN01);
+     DCL-F file1     DiskA    USROPN;
+     DCL-F file2     DiskA    USROPN;
+
+     DCL-DS library_t     Qualified;
+     DCL-DS member_t      Qualified;
+
+     DCL-S libraryName   Char(10)   INZ(LIBRARY_NAME);
+     DCL-S memberList    Char(10)   INZ(MEMBER_LIST);
+     DCL-S fileName1     Char(10);
+     DCL-S fileName2     Char(10);
+     DCL-S errMsg       Char(100);
+
+     // Could you write the compare_files program in RPG for OS400 also?
+
+     // Open the file list input file
+     filelist = 'MYLIB/FILELIST';
+     Open filelist;
+
+     // Read the file list and compare each file
+     Dow Not %Eof(filelist);
+       // Read the next file from the list
+       Read filelist;
+
+       // Set the file names
+       fileName1 = %Trim(fileList.fileName) + '.txt';
+       fileName2 = '/QSYS.lib/' + %Trim(libraryName) + '.lib/' + %Trim(fileList.fileName) + '.file';
+
+       // Open the files for comparison
+       file1 = fileName1;
+       file2 = fileName2;
+
+       // Compare the files
+       If Not CmpStmf(file1: file2);
+         errMsg = 'Error: ' + fileName1 + ' does not match ' + fileName2;
+         Dsply errMsg;
+       EndIf;
+
+       // Close the files
+       Close file1;
+       Close file2;
+     EndDo;
+
+     // Close the file list
+     Close filelist;
+
+     *INLR = *ON;
+     Return;
